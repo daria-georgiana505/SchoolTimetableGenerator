@@ -25,14 +25,15 @@ IChromosome adamChromosome = new TimetableChromosome(
     timeslots
     ).CreateNew();
 Population population = new Population(
-    20, 100, adamChromosome
+    500, 5000, adamChromosome
 );
 IFitness fitness = new TimetableFitness();
-ISelection selection = new EliteSelection();
+// ISelection selection = new EliteSelection();
+ISelection selection = new TournamentSelection();
 ICrossover crossover = new TimetableCrossover();
 IMutation mutation = new TimetableMutation();
 GeneticAlgorithmWithTasks ga = new GeneticAlgorithmWithTasks(
-    population, fitness, selection, crossover, mutation
+    population, fitness, selection, crossover, mutation, adamChromosome
 );
 ga.Start();
 

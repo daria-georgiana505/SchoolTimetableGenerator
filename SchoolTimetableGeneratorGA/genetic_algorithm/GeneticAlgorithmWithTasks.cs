@@ -13,6 +13,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     private float _mutationProbability;
     private IReinsertion _reinsertion;
     private ITermination _termination;
+    private IChromosome _adamChromosome;
     
     public GeneticAlgorithmWithTasks(
         IPopulation population,
@@ -21,7 +22,8 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         ICrossover crossover,
         float crossoverProbability,
         IMutation mutation,
-        float mutationProbability)
+        float mutationProbability,
+        IChromosome adamChromosome)
     {
         this._population = population;
         this._fitness = fitness;
@@ -32,7 +34,8 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._mutationProbability = mutationProbability;
         this.TimeEvolving = TimeSpan.Zero;
         this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(10);
+        this._termination = (ITermination) new FitnessStagnationTermination(5000);
+        this._adamChromosome = adamChromosome;
     }
     
     public GeneticAlgorithmWithTasks(
@@ -40,7 +43,8 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         IFitness fitness,
         ISelection selection,
         ICrossover crossover,
-        IMutation mutation)
+        IMutation mutation,
+        IChromosome adamChromosome)
     {
         this._population = population;
         this._fitness = fitness;
@@ -48,10 +52,11 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._crossover = crossover;
         this._mutation = mutation;
         this._crossoverProbability = 0.75f;
-        this._mutationProbability = 0.1f;
+        this._mutationProbability = 0.2f;
         this.TimeEvolving = TimeSpan.Zero;
         this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(10);
+        this._termination = (ITermination) new FitnessStagnationTermination(500);
+        this._adamChromosome = adamChromosome;
     }
 
     public void Start()
@@ -75,7 +80,22 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         IList<IChromosome> offspring = _crossover.Cross(parents);
         this.MutateAllChromosomes(offspring, _mutationProbability);
         this._population.CreateNewGeneration(this.Reinsert(offspring, parents)); 
+        
+        // if (this._population.GenerationsNumber % 50 == 0)
+        //     this.AddRandomIndividuals();
+        
         this.EndCurrentGeneration();
+    }
+
+    private void AddRandomIndividuals()
+    {
+        var newChromosomes = new List<IChromosome>();
+        for (int i = 0; i < this._population.MinSize; i++) 
+        {
+            newChromosomes.Add(this._adamChromosome.CreateNew());
+        }
+    
+        this._population.CreateNewGeneration(newChromosomes);
     }
     
     private void EndCurrentGeneration()

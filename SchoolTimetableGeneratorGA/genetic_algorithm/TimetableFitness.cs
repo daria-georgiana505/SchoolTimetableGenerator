@@ -22,19 +22,19 @@ public class TimetableFitness: IFitness
         var teacherTimeslotConflicts = schedule
             .GroupBy(t => t.TeacherId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += teacherTimeslotConflicts.Count() * 10;
+        penalty += teacherTimeslotConflicts.Count() * 1000;
         
         //HARD CONSTRAINT: Check if a student group has overlapping timeslots
         var studentGroupTimeslotConflicts = schedule
             .GroupBy(t => t.StudentGroupId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += studentGroupTimeslotConflicts.Count() * 10;
+        penalty += studentGroupTimeslotConflicts.Count() * 1000;
         
         //HARD CONSTRAINT: Check if a room has overlapping timeslots
         var roomTimeslotConflicts = schedule
             .GroupBy(t => t.RoomId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += roomTimeslotConflicts.Count() * 10;
+        penalty += roomTimeslotConflicts.Count() * 1000;
         
         //SOFT CONSTRAINT: The number of working hours for teachers are evenly spread
         var teachersWorkingHours = schedule
@@ -43,7 +43,7 @@ public class TimetableFitness: IFitness
             .ToList();
         if (teachersWorkingHours.Count > 1)
         {
-            penalty += teachersWorkingHours.Max() - teachersWorkingHours.Min();
+            penalty += (teachersWorkingHours.Max() - teachersWorkingHours.Min());
         }
         
         //SOFT CONSTRAINT: Minimize gaps between scheduled courses for teachers
@@ -67,18 +67,13 @@ public class TimetableFitness: IFitness
     {
         var conflicts = new List<Timeslot>();
 
-        var sortedSlots = timeslots.OrderBy(t => t.Day).ThenBy(t => t.Start).ToList();
+        var groupedByTimeslot = timeslots
+            .GroupBy(t => new { t.Day, t.Start })
+            .Where(group => group.Count() > 1);
 
-        for (int i = 0; i < sortedSlots.Count - 1; i++)
+        foreach (var group in groupedByTimeslot)
         {
-            var current = sortedSlots[i];
-            var next = sortedSlots[i + 1];
-
-            if (current.Day == next.Day && current.End > next.Start)
-            {
-                conflicts.Add(current);
-                conflicts.Add(next);
-            }
+            conflicts.AddRange(group);
         }
 
         return conflicts.Distinct();
