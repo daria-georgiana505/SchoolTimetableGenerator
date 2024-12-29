@@ -25,7 +25,7 @@ IChromosome adamChromosome = new TimetableChromosome(
     timeslots
     ).CreateNew();
 Population population = new Population(
-    50, 100, adamChromosome
+    500, 1000, adamChromosome
 );
 IFitness fitness = new TimetableFitness();
 // ISelection selection = new EliteSelection();
@@ -33,13 +33,19 @@ ISelection selection = new TournamentSelection();
 ICrossover crossover = new TimetableCrossover();
 IMutation mutation = new TimetableMutation();
 GeneticAlgorithmWithTasks ga = new GeneticAlgorithmWithTasks(
-    population, fitness, selection, crossover, mutation, adamChromosome
+    population, fitness, selection, crossover, mutation
 );
-ga.Start();
+await ga.Start();
 
-TimetableChromosome result = ga.BestChromosome as TimetableChromosome;
+TimetableChromosome? result = ga.BestChromosome as TimetableChromosome;
 
-TimetablePrinter.PrintToExcel(result, daysOfWeek, timeslots);
+if (result != null)
+{
+    Console.WriteLine("Best chromosome fitness: " + result.Fitness);
+    TimetablePrinter.PrintToExcel(result, daysOfWeek, timeslots);
+}
+else
+    Console.WriteLine("Timetable chromosome generation failed.");
 
 Console.WriteLine("Press any key to exit...");
 Console.ReadKey();

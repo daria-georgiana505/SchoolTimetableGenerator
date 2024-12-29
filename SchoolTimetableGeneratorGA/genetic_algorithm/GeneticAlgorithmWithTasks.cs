@@ -13,7 +13,6 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     private float _mutationProbability;
     private IReinsertion _reinsertion;
     private ITermination _termination;
-    private IChromosome _adamChromosome;
     
     public GeneticAlgorithmWithTasks(
         IPopulation population,
@@ -22,8 +21,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         ICrossover crossover,
         float crossoverProbability,
         IMutation mutation,
-        float mutationProbability,
-        IChromosome adamChromosome)
+        float mutationProbability)
     {
         this._population = population;
         this._fitness = fitness;
@@ -33,9 +31,8 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._crossoverProbability = crossoverProbability;
         this._mutationProbability = mutationProbability;
         this.TimeEvolving = TimeSpan.Zero;
-        this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(50);
-        this._adamChromosome = adamChromosome;
+        this._reinsertion = new ElitistReinsertion();
+        this._termination = new FitnessStagnationTermination(100);
     }
     
     public GeneticAlgorithmWithTasks(
@@ -43,8 +40,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         IFitness fitness,
         ISelection selection,
         ICrossover crossover,
-        IMutation mutation,
-        IChromosome adamChromosome)
+        IMutation mutation)
     {
         this._population = population;
         this._fitness = fitness;
@@ -54,12 +50,11 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._crossoverProbability = 0.75f;
         this._mutationProbability = 0.2f;
         this.TimeEvolving = TimeSpan.Zero;
-        this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(50);
-        this._adamChromosome = adamChromosome;
+        this._reinsertion = new ElitistReinsertion();
+        this._termination = new FitnessStagnationTermination(100);
     }
     
-    public void Start()
+    public async Task Start()
     {
         this._population.CreateInitialGeneration();
         
@@ -68,55 +63,75 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
 
         do
         {
-            this.EvolveOneGeneration();
+            await this.EvolveOneGeneration();
         } while (!this._termination.HasReached(this));
     }
     
-    private void EvolveOneGeneration()
+    private async Task EvolveOneGeneration()
     {
-        this.EvaluateFitness();
+        await this.EvaluateFitness();
         
         this._population.EndCurrentGeneration();
         
-        IList<IChromosome> parents = this.SelectParents();
-        IList<IChromosome> offspring = _crossover.Cross(parents);
-        this.MutateAllChromosomes(offspring, _mutationProbability);
+        IList<IChromosome> parents = await this.SelectParents();
+        IList<IChromosome> offspring = await this.PerformCrossover(parents);
+        await this.MutateAllChromosomes(offspring, _mutationProbability);
         this._population.CreateNewGeneration(this.Reinsert(offspring, parents)); 
     }
 
-    private void AddRandomIndividuals()
+    private async Task EvaluateFitness()
     {
-        var newChromosomes = new List<IChromosome>();
-        for (int i = 0; i < this._population.MinSize; i++) 
-        {
-            newChromosomes.Add(this._adamChromosome.CreateNew());
-        }
-    
-        this._population.CreateNewGeneration(newChromosomes);
+        var fitnessTasks = this._population.CurrentGeneration.Chromosomes
+            .Where(c => !c.Fitness.HasValue)
+            .Select(c => Task.Run(() => c.Fitness = this._fitness.Evaluate(c)));
+        
+        await Task.WhenAll(fitnessTasks);
     }
 
-    private void EvaluateFitness()
+    private async Task<IList<IChromosome>> PerformCrossover(IList<IChromosome> parents)
     {
-        foreach (var chromosome in this._population.CurrentGeneration.Chromosomes)
+        if (parents.Count % 2 != 0)
         {
-            if (!chromosome.Fitness.HasValue)
-            {
-                chromosome.Fitness = this._fitness.Evaluate(chromosome);
-            }
+            throw new InvalidOperationException("Number of parents must be even.");
         }
+        
+        var crossoverTasks = new List<Task<IList<IChromosome>>>();
+        
+        for (int i = 0; i < parents.Count; i += 2)
+        {
+            var parent1 = parents[i];
+            var parent2 = parents[i + 1];
+
+            crossoverTasks.Add(Task.Run(() =>
+                _crossover.Cross(new List<IChromosome> { parent1, parent2 })
+            ));
+        }
+        
+        await Task.WhenAll(crossoverTasks);
+        
+        return crossoverTasks.SelectMany(t => t.Result).ToList();
     }
     
-    private void MutateAllChromosomes(IList<IChromosome> chromosomes, float mutationProbability)
+    private async Task MutateAllChromosomes(IList<IChromosome> chromosomes, float mutationProbability)
     {
-        foreach (var chromosome in chromosomes)
-        {
-            _mutation.Mutate(chromosome, mutationProbability);
-        }
+        var mutationTasks = chromosomes
+            .Select(c => Task.Run(() => this._mutation.Mutate(c, mutationProbability)));
+        
+        await Task.WhenAll(mutationTasks);
     }
     
-    private IList<IChromosome> SelectParents()
+    private async Task<IList<IChromosome>> SelectParents()
     {
-        return this._selection.SelectChromosomes(this._population.MinSize, this._population.CurrentGeneration);
+        var parentTasks = new List<Task<IList<IChromosome>>>();
+        
+        for(int i = 0; i < (this._population.MinSize / 2) + 1; i++)
+        {
+            parentTasks.Add(Task.Run(() => this._selection.SelectChromosomes(2, this._population.CurrentGeneration)));
+        }
+        
+        await Task.WhenAll(parentTasks);
+        
+        return parentTasks.SelectMany(t => t.Result).ToList();
     }
     
     private IList<IChromosome> Reinsert(IList<IChromosome> offspring, IList<IChromosome> parents)
