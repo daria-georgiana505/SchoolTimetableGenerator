@@ -1,4 +1,4 @@
-﻿using GeneticSharp;
+﻿
 using SchoolTimetableGeneratorGA.models;
 
 namespace SchoolTimetableGeneratorGA.test_data;

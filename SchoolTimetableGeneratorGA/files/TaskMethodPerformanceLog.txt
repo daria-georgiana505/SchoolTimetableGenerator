@@ -1,0 +1,50 @@
+-- PERFORMANCE METRICS #29-Dec-24 22:33:48 --
+Number of Teachers: 8
+Number of Courses: 6
+Number of Groups: 7
+Number of Rooms: 3
+Number of Timeslots: 6
+Execution Time: 00:00:09.3569876
+Best chromosome fitness: 999
+---------------------------------------------
+
+-- PERFORMANCE METRICS #29-Dec-24 22:37:36 --
+Number of Teachers: 15
+Number of Courses: 10
+Number of Groups: 12
+Number of Rooms: 5
+Number of Timeslots: 10
+Execution Time: 00:00:53.6764258
+Best chromosome fitness: 995
+---------------------------------------------
+
+-- PERFORMANCE METRICS #29-Dec-24 22:39:29 --
+Number of Teachers: 15
+Number of Courses: 10
+Number of Groups: 12
+Number of Rooms: 5
+Number of Timeslots: 10
+Execution Time: 00:01:00.5366977
+Best chromosome fitness: 992
+---------------------------------------------
+
+-- PERFORMANCE METRICS #30-Dec-24 00:43:38 --
+Number of Teachers: 8
+Number of Courses: 6
+Number of Groups: 7
+Number of Rooms: 3
+Number of Timeslots: 6
+Execution Time: 00:00:05.7987981
+Best chromosome fitness: 999
+---------------------------------------------
+
+-- PERFORMANCE METRICS #30-Dec-24 00:45:16 --
+Number of Teachers: 8
+Number of Courses: 6
+Number of Groups: 7
+Number of Rooms: 3
+Number of Timeslots: 6
+Execution Time: 00:00:05.4957982
+Best chromosome fitness: 999
+---------------------------------------------
+

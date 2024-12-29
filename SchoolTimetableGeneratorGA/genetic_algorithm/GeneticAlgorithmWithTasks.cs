@@ -1,4 +1,5 @@
-﻿using GeneticSharp;
+﻿using System.Diagnostics;
+using GeneticSharp;
 
 namespace SchoolTimetableGeneratorGA.genetic_algorithm;
 
@@ -13,6 +14,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     private float _mutationProbability;
     private IReinsertion _reinsertion;
     private ITermination _termination;
+    private Stopwatch _stopwatch = new Stopwatch();
     
     public GeneticAlgorithmWithTasks(
         IPopulation population,
@@ -56,6 +58,8 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     
     public async Task Start()
     {
+        _stopwatch.Restart();
+        
         this._population.CreateInitialGeneration();
         
         if (this._population.GenerationsNumber == 0)
@@ -65,6 +69,9 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         {
             await this.EvolveOneGeneration();
         } while (!this._termination.HasReached(this));
+        
+        _stopwatch.Stop();
+        this.TimeEvolving = _stopwatch.Elapsed;
     }
     
     private async Task EvolveOneGeneration()
