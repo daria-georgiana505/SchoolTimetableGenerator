@@ -25,7 +25,7 @@ IChromosome adamChromosome = new TimetableChromosome(
     timeslots
     ).CreateNew();
 Population population = new Population(
-    500, 5000, adamChromosome
+    50, 100, adamChromosome
 );
 IFitness fitness = new TimetableFitness();
 // ISelection selection = new EliteSelection();

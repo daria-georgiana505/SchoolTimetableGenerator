@@ -22,19 +22,19 @@ public class TimetableFitness: IFitness
         var teacherTimeslotConflicts = schedule
             .GroupBy(t => t.TeacherId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += teacherTimeslotConflicts.Count() * 1000;
+        penalty += teacherTimeslotConflicts.Count() * 10;
         
         //HARD CONSTRAINT: Check if a student group has overlapping timeslots
         var studentGroupTimeslotConflicts = schedule
             .GroupBy(t => t.StudentGroupId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += studentGroupTimeslotConflicts.Count() * 1000;
+        penalty += studentGroupTimeslotConflicts.Count() * 10;
         
         //HARD CONSTRAINT: Check if a room has overlapping timeslots
         var roomTimeslotConflicts = schedule
             .GroupBy(t => t.RoomId)
             .SelectMany(group => CheckOverlappingTimeslots(group.ToList()));
-        penalty += roomTimeslotConflicts.Count() * 1000;
+        penalty += roomTimeslotConflicts.Count() * 10;
         
         //SOFT CONSTRAINT: The number of working hours for teachers are evenly spread
         var teachersWorkingHours = schedule
@@ -92,7 +92,7 @@ public class TimetableFitness: IFitness
 
             if (current.Day == next.Day && current.End < next.Start)
             {
-                totalGaps += (int)(next.Start - current.End).TotalMinutes;
+                totalGaps += (int)(next.Start - current.End).TotalHours;
             }
         }
 

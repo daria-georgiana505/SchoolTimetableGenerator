@@ -34,7 +34,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._mutationProbability = mutationProbability;
         this.TimeEvolving = TimeSpan.Zero;
         this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(5000);
+        this._termination = (ITermination) new FitnessStagnationTermination(50);
         this._adamChromosome = adamChromosome;
     }
     
@@ -55,18 +55,16 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._mutationProbability = 0.2f;
         this.TimeEvolving = TimeSpan.Zero;
         this._reinsertion = (IReinsertion) new ElitistReinsertion();
-        this._termination = (ITermination) new FitnessStagnationTermination(500);
+        this._termination = (ITermination) new FitnessStagnationTermination(50);
         this._adamChromosome = adamChromosome;
     }
-
+    
     public void Start()
     {
         this._population.CreateInitialGeneration();
         
         if (this._population.GenerationsNumber == 0)
             throw new InvalidOperationException("The number of generations must be greater than 0.");
-        
-        this.EvaluateFitness();
 
         do
         {
@@ -76,15 +74,14 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     
     private void EvolveOneGeneration()
     {
+        this.EvaluateFitness();
+        
+        this._population.EndCurrentGeneration();
+        
         IList<IChromosome> parents = this.SelectParents();
         IList<IChromosome> offspring = _crossover.Cross(parents);
         this.MutateAllChromosomes(offspring, _mutationProbability);
         this._population.CreateNewGeneration(this.Reinsert(offspring, parents)); 
-        
-        // if (this._population.GenerationsNumber % 50 == 0)
-        //     this.AddRandomIndividuals();
-        
-        this.EndCurrentGeneration();
     }
 
     private void AddRandomIndividuals()
@@ -96,12 +93,6 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         }
     
         this._population.CreateNewGeneration(newChromosomes);
-    }
-    
-    private void EndCurrentGeneration()
-    {
-        this.EvaluateFitness();
-        this._population.EndCurrentGeneration();
     }
 
     private void EvaluateFitness()
