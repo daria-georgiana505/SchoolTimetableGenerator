@@ -14,7 +14,7 @@ public class TimetableFitness: IFitness
         }
 
         double fitness = 1000;
-        int penalty = 0;
+        var penalty = 0;
         
         var schedule = timetable.Schedule;
         
@@ -63,7 +63,7 @@ public class TimetableFitness: IFitness
         return Math.Max(0, fitness);
     }
     
-    private IEnumerable<Timeslot> CheckOverlappingTimeslots(List<Timeslot> timeslots)
+    private static IEnumerable<Timeslot> CheckOverlappingTimeslots(List<Timeslot> timeslots)
     {
         var conflicts = new List<Timeslot>();
 
@@ -79,13 +79,13 @@ public class TimetableFitness: IFitness
         return conflicts.Distinct();
     }
     
-    private int CalculateGapsInSchedule(List<Timeslot> timeslots)
+    private static int CalculateGapsInSchedule(List<Timeslot> timeslots)
     {
-        int totalGaps = 0;
+        var totalGaps = 0;
 
         var sortedSlots = timeslots.OrderBy(t => t.Day).ThenBy(t => t.Start).ToList();
 
-        for (int i = 0; i < sortedSlots.Count - 1; i++)
+        for (var i = 0; i < sortedSlots.Count - 1; i++)
         {
             var current = sortedSlots[i];
             var next = sortedSlots[i + 1];
@@ -99,7 +99,7 @@ public class TimetableFitness: IFitness
         return totalGaps;
     }
 
-    private int ComputeNumberOfWorkingHours(List<Timeslot> timeslots)
+    private static int ComputeNumberOfWorkingHours(List<Timeslot> timeslots)
     {
         return timeslots.Sum(t => (int)(t.End - t.Start).TotalHours);
     }

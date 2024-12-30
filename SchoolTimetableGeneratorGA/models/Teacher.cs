@@ -1,12 +1,15 @@
-﻿namespace SchoolTimetableGeneratorGA.models;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace SchoolTimetableGeneratorGA.models;
 
 public class Teacher
 {
     public int Id { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    private string FirstName { get; set; }
+    private string LastName { get; set; }
     // public int DesiredNumberOfWorkingHours { get; set; }
 
+    [SuppressMessage("ReSharper", "ConvertToPrimaryConstructor")]
     public Teacher(int id, string firstName, string lastName)
     {
         Id = id;

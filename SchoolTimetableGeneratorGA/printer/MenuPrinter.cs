@@ -21,7 +21,7 @@ public class MenuPrinter
         PrintMenuOptions();
         Console.WriteLine();
         Console.WriteLine("Select an option: ");
-        int option = Convert.ToInt32(Console.ReadLine());
+        var option = Convert.ToInt32(Console.ReadLine());
         Console.WriteLine();
         ExecuteSelectedMenuOption(option);
     }
@@ -39,8 +39,6 @@ public class MenuPrinter
         switch (option)
         {
             case 1:
-                PrintSubmenu(option);
-                break;
             case 2:
                 PrintSubmenu(option);
                 break;
@@ -71,7 +69,7 @@ public class MenuPrinter
         PrintSubmenuOptions();
         Console.WriteLine();
         Console.WriteLine("Select an option: ");
-        int option = Convert.ToInt32(Console.ReadLine());
+        var option = Convert.ToInt32(Console.ReadLine());
         Console.WriteLine();
         ExecuteSelectedSubmenuOption(option, menuOption);
     }
@@ -82,7 +80,7 @@ public class MenuPrinter
         List<Group> groups;
         List<Room> rooms;
         List<Teacher> teachers;
-        List<DayOfWeek> daysOfWeek = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+        List<DayOfWeek> daysOfWeek = Enum.GetValues<DayOfWeek>().ToList();
         List<(TimeSpan, TimeSpan)> timeslots;
 
         switch (option)
@@ -96,7 +94,7 @@ public class MenuPrinter
                 RunSelectedGeneticAlgorithm(menuOption, courses, groups, rooms, teachers, timeslots, daysOfWeek);
                 break;
             case 3:
-                (int coursesCount, int groupsCount, int roomsCount, int teachersCount, int timeslotsStartHour, int timeslotsEndHour) = ReadCustomTestDataFromUser();
+                var (coursesCount, groupsCount, roomsCount, teachersCount, timeslotsStartHour, timeslotsEndHour) = ReadCustomTestDataFromUser();
                 (courses, groups, rooms, teachers, timeslots) = GenerateTestData(coursesCount, groupsCount, roomsCount, teachersCount, timeslotsStartHour, timeslotsEndHour);
                 RunSelectedGeneticAlgorithm(menuOption, courses, groups, rooms, teachers, timeslots, daysOfWeek);
                 break;
@@ -108,36 +106,32 @@ public class MenuPrinter
         }
     }
 
-    private static (int, int, int, int, int, int) ReadCustomTestDataFromUser()
+    private static (int coursesCount, int groupsCount, int roomsCount, int teachersCount, int timeslotsStartHour, int timeslotsEndHour) ReadCustomTestDataFromUser()
     {
-        Console.WriteLine("Input number of courses: ");
-        int coursesCount = Convert.ToInt32(Console.ReadLine());
+        static int GetInput(string prompt)
+        {
+            Console.WriteLine(prompt);
+            return Convert.ToInt32(Console.ReadLine());
+        }
 
-        Console.WriteLine("Input number of groups: ");
-        int groupsCount = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Input number of rooms: ");
-        int roomsCount = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Input number of teachers: ");
-        int teachersCount = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Input starting hour for timeslots: ");
-        int timeslotsStartHour = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Input ending hour for timeslots: ");
-        int timeslotsEndHour = Convert.ToInt32(Console.ReadLine());
+        var coursesCount = GetInput("Input number of courses: ");
+        var groupsCount = GetInput("Input number of groups: ");
+        var roomsCount = GetInput("Input number of rooms: ");
+        var teachersCount = GetInput("Input number of teachers: ");
+        var timeslotsStartHour = GetInput("Input starting hour for timeslots: ");
+        var timeslotsEndHour = GetInput("Input ending hour for timeslots: ");
 
         return (coursesCount, groupsCount, roomsCount, teachersCount, timeslotsStartHour, timeslotsEndHour);
     }
 
+
     private static (List<Course>, List<Group>, List<Room>, List<Teacher>, List<(TimeSpan, TimeSpan)>) GenerateTestData(int coursesCount, int groupsCount, int roomsCount, int teachersCount, int timeslotsStartHour, int timeslotsEndHour)
     {
-        List<Course> courses = TestDataGenerator.GenerateCourses(coursesCount);
-        List<Group> groups = TestDataGenerator.GenerateGroups(groupsCount);
-        List<Room> rooms = TestDataGenerator.GenerateRooms(roomsCount);
-        List<Teacher> teachers = TestDataGenerator.GenerateTeachers(teachersCount);
-        List<(TimeSpan, TimeSpan)> timeslots = TestDataGenerator.GenerateTimeslots(timeslotsStartHour, timeslotsEndHour);
+        var courses = TestDataGenerator.GenerateCourses(coursesCount);
+        var groups = TestDataGenerator.GenerateGroups(groupsCount);
+        var rooms = TestDataGenerator.GenerateRooms(roomsCount);
+        var teachers = TestDataGenerator.GenerateTeachers(teachersCount);
+        var timeslots = TestDataGenerator.GenerateTimeslots(timeslotsStartHour, timeslotsEndHour);
 
         return (courses, groups, rooms, teachers, timeslots);
     }
@@ -169,8 +163,8 @@ public class MenuPrinter
         List<(TimeSpan, TimeSpan)> timeslots, 
         List<DayOfWeek> daysOfWeek)
     {
-        IChromosome adamChromosome = new TimetableChromosome(
-            courses.Count() * groups.Count(),
+        var adamChromosome = new TimetableChromosome(
+            courses.Count * groups.Count,
             courses.Select(c => c.Id).ToList(),
             teachers.Select(t => t.Id).ToList(),
             rooms.Select(r => r.Id).ToList(),
@@ -196,7 +190,7 @@ public class MenuPrinter
         GeneticAlgorithmSingleThreaded ga = new GeneticAlgorithmSingleThreaded(population, fitness, selection, crossover, mutation);
         ga.Start();
 
-        string filename = "SingleThreadPerformanceLog.txt";
+        const string filename = "SingleThreadPerformanceLog.txt";
         HandleTimetableResult(
             filename,
             ga.BestChromosome as TimetableChromosome, 
@@ -227,7 +221,7 @@ public class MenuPrinter
         GeneticAlgorithmWithTasks ga = new GeneticAlgorithmWithTasks(population, fitness, selection, crossover, mutation);
         ga.Start().Wait();
 
-        string filename = "TaskMethodPerformanceLog.txt";
+        var filename = "TaskMethodPerformanceLog.txt";
         HandleTimetableResult(
             filename,
             ga.BestChromosome as TimetableChromosome, 
@@ -257,11 +251,11 @@ public class MenuPrinter
             Console.WriteLine("Execution time: " + executionTime);
             PerformanceMeasurementPrinter.LogPerformanceMetrics(
                 filename,
-                teachers.Count(),
-                courses.Count(),
-                groups.Count(),
-                rooms.Count(),
-                timeslots.Count(),
+                teachers.Count,
+                courses.Count,
+                groups.Count,
+                rooms.Count,
+                timeslots.Count,
                 executionTime,
                 result.Fitness.Value);
             Console.WriteLine($"Performance measurement saved to log file: {filename}");

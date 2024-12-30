@@ -16,10 +16,11 @@ public class TimetableMutation: IMutation
         }
         
         var random = RandomizationProvider.Current;
-        if (random.GetDouble() <= probability)
+        if (!(random.GetDouble() <= probability))
         {
-            int geneIndex = random.GetInt(0, timetableChromosome.Length);
-            timetableChromosome.ReplaceGene(geneIndex, timetableChromosome.GenerateGene(geneIndex));
+            return;
         }
+        var geneIndex = random.GetInt(0, timetableChromosome.Length);
+        timetableChromosome.ReplaceGene(geneIndex, timetableChromosome.GenerateGene(geneIndex));
     }
 }

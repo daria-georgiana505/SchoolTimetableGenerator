@@ -18,7 +18,7 @@ public class TimetableCrossover: ICrossover
 
         var random = RandomizationProvider.Current;
 
-        int crossoverPoint = random.GetInt(1, parent1.Length - 1);
+        var crossoverPoint = random.GetInt(1, parent1.Length - 1);
 
         var child1 = parent1.CreateNew() as TimetableChromosome;
         var child2 = parent2.CreateNew() as TimetableChromosome;
@@ -28,7 +28,7 @@ public class TimetableCrossover: ICrossover
             throw new InvalidOperationException("Failed to create new TimetableChromosome instances.");
         }
 
-        for (int i = 0; i < parent1.Length; i++)
+        for (var i = 0; i < parent1.Length; i++)
         {
             if (i < crossoverPoint)
             {

@@ -14,7 +14,8 @@ public class TimetableChromosome: ChromosomeBase
     private readonly List<DayOfWeek> _days;
     private readonly List<(TimeSpan start, TimeSpan end)> _timeSlots;
     
-    public TimetableChromosome(int length, List<int> courseIds, List<int> teacherIds, List<int> roomIds, List<int> studentGroupIds, List<DayOfWeek> days, List<(TimeSpan start, TimeSpan end)> timeSlots)
+    public TimetableChromosome(int length, List<int> courseIds, List<int> teacherIds, List<int> roomIds, 
+        List<int> studentGroupIds, List<DayOfWeek> days, List<(TimeSpan start, TimeSpan end)> timeSlots)
         : base(length)
     {
         _courseIds = courseIds;
@@ -24,7 +25,7 @@ public class TimetableChromosome: ChromosomeBase
         _days = days;
         _timeSlots = timeSlots;
 
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
             ReplaceGene(i, GenerateGene(i));
         }
@@ -33,7 +34,7 @@ public class TimetableChromosome: ChromosomeBase
     public override IChromosome Clone()
     {
         var clone = new TimetableChromosome(Length, _courseIds, _teacherIds, _roomIds, _studentGroupIds, _days, _timeSlots);
-        for (int i = 0; i < Length; i++)
+        for (var i = 0; i < Length; i++)
         {
             clone.ReplaceGene(i, GetGene(i));
         }

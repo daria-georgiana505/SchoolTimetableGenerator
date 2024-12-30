@@ -6,11 +6,6 @@ public class Timeslot
     public int TeacherId { get; set; }
     public int RoomId { get; set; }
     public int StudentGroupId { get; set; }
-    
-    // public Course Course { get; set; }
-    // public Teacher Teacher { get; set; }
-    // public Room Room { get; set; }
-    // public Group StudentGroup { get; set; }
     public DayOfWeek Day { get; set; }
     public TimeSpan Start { get; set; }
     public TimeSpan End { get; set; }

@@ -5,16 +5,16 @@ namespace SchoolTimetableGeneratorGA.genetic_algorithm;
 
 public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
 {
-    private IPopulation _population;
-    private IFitness _fitness;
-    private ISelection _selection;
-    private ICrossover _crossover;
-    private IMutation _mutation;
+    private readonly IPopulation _population;
+    private readonly IFitness _fitness;
+    private readonly ISelection _selection;
+    private readonly ICrossover _crossover;
+    private readonly IMutation _mutation;
     private float _crossoverProbability;
-    private float _mutationProbability;
-    private IReinsertion _reinsertion;
-    private ITermination _termination;
-    private Stopwatch _stopwatch = new Stopwatch();
+    private readonly float _mutationProbability;
+    private readonly IReinsertion _reinsertion;
+    private readonly ITermination _termination;
+    private readonly Stopwatch _stopwatch = new Stopwatch();
     
     public GeneticAlgorithmWithTasks(
         IPopulation population,
@@ -25,16 +25,16 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         IMutation mutation,
         float mutationProbability)
     {
-        this._population = population;
-        this._fitness = fitness;
-        this._selection = selection;
-        this._crossover = crossover;
-        this._mutation = mutation;
-        this._crossoverProbability = crossoverProbability;
-        this._mutationProbability = mutationProbability;
-        this.TimeEvolving = TimeSpan.Zero;
-        this._reinsertion = new ElitistReinsertion();
-        this._termination = new FitnessStagnationTermination(100);
+        _population = population;
+        _fitness = fitness;
+        _selection = selection;
+        _crossover = crossover;
+        _mutation = mutation;
+        _crossoverProbability = crossoverProbability;
+        _mutationProbability = mutationProbability;
+        TimeEvolving = TimeSpan.Zero;
+        _reinsertion = new ElitistReinsertion();
+        _termination = new FitnessStagnationTermination(100);
     }
     
     public GeneticAlgorithmWithTasks(
@@ -44,53 +44,53 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         ICrossover crossover,
         IMutation mutation)
     {
-        this._population = population;
-        this._fitness = fitness;
-        this._selection = selection;
-        this._crossover = crossover;
-        this._mutation = mutation;
-        this._crossoverProbability = 0.75f;
-        this._mutationProbability = 0.2f;
-        this.TimeEvolving = TimeSpan.Zero;
-        this._reinsertion = new ElitistReinsertion();
-        this._termination = new FitnessStagnationTermination(100);
+        _population = population;
+        _fitness = fitness;
+        _selection = selection;
+        _crossover = crossover;
+        _mutation = mutation;
+        _crossoverProbability = 0.75f;
+        _mutationProbability = 0.2f;
+        TimeEvolving = TimeSpan.Zero;
+        _reinsertion = new ElitistReinsertion();
+        _termination = new FitnessStagnationTermination(100);
     }
     
     public async Task Start()
     {
         _stopwatch.Restart();
         
-        this._population.CreateInitialGeneration();
+        _population.CreateInitialGeneration();
         
-        if (this._population.GenerationsNumber == 0)
+        if (_population.GenerationsNumber == 0)
             throw new InvalidOperationException("The number of generations must be greater than 0.");
 
         do
         {
-            await this.EvolveOneGeneration();
-        } while (!this._termination.HasReached(this));
+            await EvolveOneGeneration();
+        } while (!_termination.HasReached(this));
         
         _stopwatch.Stop();
-        this.TimeEvolving = _stopwatch.Elapsed;
+        TimeEvolving = _stopwatch.Elapsed;
     }
     
     private async Task EvolveOneGeneration()
     {
-        await this.EvaluateFitness();
+        await EvaluateFitness();
         
-        this._population.EndCurrentGeneration();
+        _population.EndCurrentGeneration();
         
-        IList<IChromosome> parents = await this.SelectParents();
-        IList<IChromosome> offspring = await this.PerformCrossover(parents);
-        await this.MutateAllChromosomes(offspring, _mutationProbability);
-        this._population.CreateNewGeneration(this.Reinsert(offspring, parents)); 
+        var parents = await SelectParents();
+        var offspring = await PerformCrossover(parents);
+        await MutateAllChromosomes(offspring, _mutationProbability);
+        _population.CreateNewGeneration(Reinsert(offspring, parents)); 
     }
 
     private async Task EvaluateFitness()
     {
-        var fitnessTasks = this._population.CurrentGeneration.Chromosomes
+        var fitnessTasks = _population.CurrentGeneration.Chromosomes
             .Where(c => !c.Fitness.HasValue)
-            .Select(c => Task.Run(() => c.Fitness = this._fitness.Evaluate(c)));
+            .Select(c => Task.Run(() => c.Fitness = _fitness.Evaluate(c)));
         
         await Task.WhenAll(fitnessTasks);
     }
@@ -104,7 +104,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         
         var crossoverTasks = new List<Task<IList<IChromosome>>>();
         
-        for (int i = 0; i < parents.Count; i += 2)
+        for (var i = 0; i < parents.Count; i += 2)
         {
             var parent1 = parents[i];
             var parent2 = parents[i + 1];
@@ -122,7 +122,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     private async Task MutateAllChromosomes(IList<IChromosome> chromosomes, float mutationProbability)
     {
         var mutationTasks = chromosomes
-            .Select(c => Task.Run(() => this._mutation.Mutate(c, mutationProbability)));
+            .Select(c => Task.Run(() => _mutation.Mutate(c, mutationProbability)));
         
         await Task.WhenAll(mutationTasks);
     }
@@ -131,9 +131,9 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     {
         var parentTasks = new List<Task<IList<IChromosome>>>();
         
-        for(int i = 0; i < (this._population.MinSize / 2) + 1; i++)
+        for(var i = 0; i < (_population.MinSize / 2) + 1; i++)
         {
-            parentTasks.Add(Task.Run(() => this._selection.SelectChromosomes(2, this._population.CurrentGeneration)));
+            parentTasks.Add(Task.Run(() => _selection.SelectChromosomes(2, _population.CurrentGeneration)));
         }
         
         await Task.WhenAll(parentTasks);
@@ -143,11 +143,11 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     
     private IList<IChromosome> Reinsert(IList<IChromosome> offspring, IList<IChromosome> parents)
     {
-        return this._reinsertion.SelectChromosomes(this._population, offspring, parents);
+        return _reinsertion.SelectChromosomes(_population, offspring, parents);
     }
 
-    public int GenerationsNumber => this._population.GenerationsNumber;
+    public int GenerationsNumber => _population.GenerationsNumber;
 
-    public IChromosome BestChromosome => this._population.BestChromosome;
+    public IChromosome BestChromosome => _population.BestChromosome;
     public TimeSpan TimeEvolving { get; private set; }
 }
