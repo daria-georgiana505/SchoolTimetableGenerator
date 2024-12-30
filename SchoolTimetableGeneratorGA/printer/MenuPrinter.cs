@@ -39,8 +39,7 @@ public class MenuPrinter
         switch (option)
         {
             case 1:
-                // PrintSubmenu(option);
-                Console.WriteLine("To be implemented...");
+                PrintSubmenu(option);
                 break;
             case 2:
                 PrintSubmenu(option);
@@ -194,9 +193,20 @@ public class MenuPrinter
         var (population, fitness, selection, crossover, mutation) = InitializeGeneticAlgorithm(
             courses, groups, rooms, teachers, timeslots, daysOfWeek);
 
-        //Initialization and execution of genetic algorithm
-        
-        //Write results to log and Excel files
+        GeneticAlgorithmSingleThreaded ga = new GeneticAlgorithmSingleThreaded(population, fitness, selection, crossover, mutation);
+        ga.Start();
+
+        string filename = "SingleThreadPerformanceLog.txt";
+        HandleTimetableResult(
+            filename,
+            ga.BestChromosome as TimetableChromosome, 
+            ga.TimeEvolving, 
+            teachers, 
+            courses, 
+            groups, 
+            rooms, 
+            timeslots, 
+            daysOfWeek);
     }
     
     private static void RunGeneticAlgorithmWithMPI(List<Course> courses, List<Group> groups, List<Room> rooms, List<Teacher> teachers, List<(TimeSpan, TimeSpan)> timeslots, List<DayOfWeek> daysOfWeek)
