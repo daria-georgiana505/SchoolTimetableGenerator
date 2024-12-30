@@ -1,0 +1,20 @@
+-- PERFORMANCE METRICS #30-Dec-24 13:32:09 --
+Number of Teachers: 8
+Number of Courses: 6
+Number of Groups: 7
+Number of Rooms: 3
+Number of Timeslots: 6
+Execution Time: 00:00:18.4877556
+Best chromosome fitness: 999
+---------------------------------------------
+
+-- PERFORMANCE METRICS #30-Dec-24 13:33:51 --
+Number of Teachers: 15
+Number of Courses: 10
+Number of Groups: 12
+Number of Rooms: 5
+Number of Timeslots: 10
+Execution Time: 00:01:31.9388527
+Best chromosome fitness: 997
+---------------------------------------------
+

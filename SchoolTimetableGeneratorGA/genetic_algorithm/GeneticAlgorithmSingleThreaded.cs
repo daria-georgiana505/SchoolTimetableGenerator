@@ -3,9 +3,9 @@ using GeneticSharp;
 
 namespace SchoolTimetableGeneratorGA.genetic_algorithm;
 
-public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
+public class GeneticAlgorithmSingleThreaded : IGeneticAlgorithm
 {
-    private IPopulation _population;
+        private IPopulation _population;
     private IFitness _fitness;
     private ISelection _selection;
     private ICrossover _crossover;
@@ -16,7 +16,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
     private ITermination _termination;
     private Stopwatch _stopwatch = new Stopwatch();
     
-    public GeneticAlgorithmWithTasks(
+    public GeneticAlgorithmSingleThreaded(
         IPopulation population,
         IFitness fitness,
         ISelection selection,
@@ -37,7 +37,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._termination = new FitnessStagnationTermination(100);
     }
     
-    public GeneticAlgorithmWithTasks(
+    public GeneticAlgorithmSingleThreaded(
         IPopulation population,
         IFitness fitness,
         ISelection selection,
@@ -56,7 +56,7 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
         this._termination = new FitnessStagnationTermination(100);
     }
     
-    public async Task Start()
+    public void Start()
     {
         _stopwatch.Restart();
         
@@ -67,78 +67,74 @@ public class GeneticAlgorithmWithTasks: IGeneticAlgorithm
 
         do
         {
-            await this.EvolveOneGeneration();
+            this.EvolveOneGeneration();
         } while (!this._termination.HasReached(this));
         
         _stopwatch.Stop();
         this.TimeEvolving = _stopwatch.Elapsed;
     }
     
-    private async Task EvolveOneGeneration()
+    private void EvolveOneGeneration()
     {
-        await this.EvaluateFitness();
+        this.EvaluateFitness();
         
         this._population.EndCurrentGeneration();
         
-        IList<IChromosome> parents = await this.SelectParents();
-        IList<IChromosome> offspring = await this.PerformCrossover(parents);
-        await this.MutateAllChromosomes(offspring, _mutationProbability);
+        IList<IChromosome> parents = this.SelectParents();
+        IList<IChromosome> offspring = this.PerformCrossover(parents);
+        this.MutateAllChromosomes(offspring, _mutationProbability);
         this._population.CreateNewGeneration(this.Reinsert(offspring, parents)); 
     }
 
-    private async Task EvaluateFitness()
+    private void EvaluateFitness()
     {
-        var fitnessTasks = this._population.CurrentGeneration.Chromosomes
-            .Where(c => !c.Fitness.HasValue)
-            .Select(c => Task.Run(() => c.Fitness = this._fitness.Evaluate(c)));
-        
-        await Task.WhenAll(fitnessTasks);
+        foreach (var chromosome in this._population.CurrentGeneration.Chromosomes)
+        {
+            if (!chromosome.Fitness.HasValue)
+            {
+                chromosome.Fitness = this._fitness.Evaluate(chromosome);
+            }
+        }
     }
 
-    private async Task<IList<IChromosome>> PerformCrossover(IList<IChromosome> parents)
+    private IList<IChromosome> PerformCrossover(IList<IChromosome> parents)
     {
         if (parents.Count % 2 != 0)
         {
             throw new InvalidOperationException("Number of parents must be even.");
         }
         
-        var crossoverTasks = new List<Task<IList<IChromosome>>>();
+        var crossoverList = new List<IChromosome>();
         
         for (int i = 0; i < parents.Count; i += 2)
         {
             var parent1 = parents[i];
             var parent2 = parents[i + 1];
 
-            crossoverTasks.Add(Task.Run(() =>
-                _crossover.Cross(new List<IChromosome> { parent1, parent2 })
-            ));
+            crossoverList.AddRange(_crossover.Cross(new List<IChromosome> { parent1, parent2 }));
         }
         
-        await Task.WhenAll(crossoverTasks);
-        
-        return crossoverTasks.SelectMany(t => t.Result).ToList();
+        return crossoverList;
     }
     
-    private async Task MutateAllChromosomes(IList<IChromosome> chromosomes, float mutationProbability)
+    private void MutateAllChromosomes(IList<IChromosome> chromosomes, float mutationProbability)
     {
-        var mutationTasks = chromosomes
-            .Select(c => Task.Run(() => this._mutation.Mutate(c, mutationProbability)));
-        
-        await Task.WhenAll(mutationTasks);
+        foreach (var chromosome in chromosomes)
+        {
+            _mutation.Mutate(chromosome, mutationProbability);
+        }
     }
     
-    private async Task<IList<IChromosome>> SelectParents()
+    private IList<IChromosome> SelectParents()
     {
-        var parentTasks = new List<Task<IList<IChromosome>>>();
+        var parentList = new List<IChromosome>();
         
         for(int i = 0; i < (this._population.MinSize / 2) + 1; i++)
         {
-            parentTasks.Add(Task.Run(() => this._selection.SelectChromosomes(2, this._population.CurrentGeneration)));
+            parentList.AddRange(this._selection.SelectChromosomes(2, this._population.CurrentGeneration));
         }
-        
-        await Task.WhenAll(parentTasks);
-        
-        return parentTasks.SelectMany(t => t.Result).ToList();
+
+        return parentList;
     }
     
     private IList<IChromosome> Reinsert(IList<IChromosome> offspring, IList<IChromosome> parents)

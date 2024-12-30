@@ -93,7 +93,5 @@ public class TimetablePrinter
 
             package.Save();
         }
-
-        Console.WriteLine($"Timetable saved to: {filePath}");
     }
 }
