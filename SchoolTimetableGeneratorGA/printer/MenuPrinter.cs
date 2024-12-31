@@ -1,7 +1,12 @@
 ﻿using GeneticSharp;
+using MessagePack;
+using MessagePack.Resolvers;
+using MPI;
 using SchoolTimetableGeneratorGA.genetic_algorithm;
 using SchoolTimetableGeneratorGA.models;
 using SchoolTimetableGeneratorGA.test_data;
+using Environment = System.Environment;
+using Group = SchoolTimetableGeneratorGA.models.Group;
 
 namespace SchoolTimetableGeneratorGA.printer;
 
@@ -9,8 +14,21 @@ public class MenuPrinter
 {
     public static void ShowMenu()
     {
-        while(true)
-            PrintMenu();
+        if (Communicator.world.Rank == 0)
+        {
+            while (true)
+                PrintMenu();
+        }
+        else
+        {
+            byte[] geneticAlgorithmObjectAsBinaryData = Communicator.world.Receive<byte[]>(0, 0);
+            GeneticAlgorithmWithMPI ga = (GeneticAlgorithmWithMPI)MessagePackSerializer.Deserialize<object>(
+                geneticAlgorithmObjectAsBinaryData, 
+                MessagePackSerializerOptions.Standard.WithResolver(TypelessContractlessStandardResolver.Instance)
+            );
+            
+            ga.Start();
+        }
     }
     
     private static void PrintMenu()
@@ -45,8 +63,7 @@ public class MenuPrinter
                 PrintSubmenu(option);
                 break;
             case 3:
-                // PrintSubmenu(option);
-                Console.WriteLine("To be implemented...");
+                PrintSubmenu(option);
                 break;
             case 0:
                 Console.WriteLine("Exiting the program...");
@@ -214,9 +231,30 @@ public class MenuPrinter
         var (population, fitness, selection, crossover, mutation) = InitializeGeneticAlgorithm(
             courses, groups, rooms, teachers, timeslots, daysOfWeek);
 
-        //Initialization and execution of genetic algorithm
+        GeneticAlgorithmWithMPI ga = new GeneticAlgorithmWithMPI(population, fitness, selection, crossover, mutation);
         
-        //Write results to log and Excel files
+        byte[] geneticAlgorithmObjectAsBinaryData = MessagePackSerializer.Serialize(ga, 
+            MessagePackSerializerOptions.Standard.WithResolver(TypelessContractlessStandardResolver.Instance)
+        );
+        
+        for (int worker = 1; worker < Communicator.world.Size; worker++)
+        {
+            Communicator.world.Send(geneticAlgorithmObjectAsBinaryData, worker, 0);
+        }
+        
+        ga.Start();
+        
+         string filename = "MpiMethodPerformanceLog.txt";
+         HandleTimetableResult(
+             filename,
+             ga.BestChromosome as TimetableChromosome, 
+             ga.TimeEvolving, 
+             teachers, 
+             courses, 
+             groups, 
+             rooms, 
+             timeslots, 
+             daysOfWeek);
     }
 
     private static void RunGeneticAlgorithmWithTasks(List<Course> courses, List<Group> groups, List<Room> rooms, List<Teacher> teachers, List<(TimeSpan, TimeSpan)> timeslots, List<DayOfWeek> daysOfWeek)
