@@ -1,5 +1,6 @@
 ﻿using GeneticSharp;
 using MessagePack;
+using MessagePack.Resolvers;
 using MPI;
 using SchoolTimetableGeneratorGA.genetic_algorithm;
 using SchoolTimetableGeneratorGA.models;
@@ -21,7 +22,10 @@ public class MenuPrinter
         else
         {
             byte[] geneticAlgorithmObjectAsBinaryData = Communicator.world.Receive<byte[]>(0, 0);
-            GeneticAlgorithmWithMPI ga = MessagePackSerializer.Deserialize<GeneticAlgorithmWithMPI>(geneticAlgorithmObjectAsBinaryData);
+            GeneticAlgorithmWithMPI ga = (GeneticAlgorithmWithMPI)MessagePackSerializer.Deserialize<object>(
+                geneticAlgorithmObjectAsBinaryData, 
+                MessagePackSerializerOptions.Standard.WithResolver(TypelessContractlessStandardResolver.Instance)
+            );
             
             ga.Start();
         }
@@ -229,7 +233,9 @@ public class MenuPrinter
 
         GeneticAlgorithmWithMPI ga = new GeneticAlgorithmWithMPI(population, fitness, selection, crossover, mutation);
         
-        byte[] geneticAlgorithmObjectAsBinaryData = MessagePackSerializer.Serialize(ga);
+        byte[] geneticAlgorithmObjectAsBinaryData = MessagePackSerializer.Serialize(ga, 
+            MessagePackSerializerOptions.Standard.WithResolver(TypelessContractlessStandardResolver.Instance)
+        );
         
         for (int worker = 1; worker < Communicator.world.Size; worker++)
         {

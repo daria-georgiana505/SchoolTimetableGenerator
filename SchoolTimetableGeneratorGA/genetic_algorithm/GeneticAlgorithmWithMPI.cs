@@ -5,18 +5,34 @@ using MPI;
 
 namespace SchoolTimetableGeneratorGA.genetic_algorithm;
 
-public class GeneticAlgorithmWithMPI: IGeneticAlgorithm
+
+[MessagePackObject]
+public partial class GeneticAlgorithmWithMPI: IGeneticAlgorithm
 {
+    [Key(0)]
     private IPopulation _population;
+    [Key(1)]
     private IFitness _fitness;
+    [Key(2)]
     private ISelection _selection;
+    [Key(3)]
     private ICrossover _crossover;
+    [Key(4)]
     private IMutation _mutation;
+    [Key(5)]
     private float _crossoverProbability;
+    [Key(6)]
     private float _mutationProbability;
+    [Key(7)]
     private IReinsertion _reinsertion;
+    [Key(8)]
     private ITermination _termination;
+    [IgnoreMember]
     private Stopwatch _stopwatch = new Stopwatch();
+
+    public GeneticAlgorithmWithMPI()
+    {
+    }
     
     public GeneticAlgorithmWithMPI(
         IPopulation population,
@@ -220,9 +236,12 @@ public class GeneticAlgorithmWithMPI: IGeneticAlgorithm
         return this._reinsertion.SelectChromosomes(this._population, offspring, parents);
     }
     
+    [IgnoreMember]
     public int GenerationsNumber => this._population.GenerationsNumber;
 
+    [IgnoreMember]
     public IChromosome BestChromosome => this._population.BestChromosome;
     
+    [IgnoreMember]
     public TimeSpan TimeEvolving { get; private set; }
 }

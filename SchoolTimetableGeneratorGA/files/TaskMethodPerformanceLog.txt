@@ -68,3 +68,13 @@ Execution Time: 00:00:39.8793531
 Best chromosome fitness: 993
 ---------------------------------------------
 
+-- PERFORMANCE METRICS #12/31/2024 8:43:23 PM --
+Number of Teachers: 8
+Number of Courses: 6
+Number of Groups: 7
+Number of Rooms: 3
+Number of Timeslots: 6
+Execution Time: 00:00:03.1457439
+Best chromosome fitness: 999
+---------------------------------------------
+
